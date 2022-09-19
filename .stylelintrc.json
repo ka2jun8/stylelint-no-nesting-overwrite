@@ -1,0 +1,6 @@
+{
+  "plugins": ["./dist/index.js"],
+  "rules": {
+    "ka2jun8/no-nesting-overwrite": true
+  }
+}

@@ -1,0 +1,37 @@
+body {
+  height: 100vh;
+}
+
+p {
+  color: blue;
+}
+
+.sample {
+  --color: blue;
+
+  color: var(--color);
+
+  &[data-type="failed"] {
+    color: red;
+  }
+
+  &[data-type="success"] {
+    --color: red;
+  }
+}
+
+.sample {
+  --color: blue;
+
+  color: var(--color);
+
+  &[data-first-type="skip"] {
+    &[data-second-type="failed"] {
+      color: red;
+    }
+
+    &[data-second-type="success"] {
+      --color: red;
+    }
+  }
+}
