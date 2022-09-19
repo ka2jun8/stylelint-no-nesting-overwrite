@@ -17,7 +17,7 @@ function isRuleNode(node: Declaration | RuleNode): node is RuleNode {
   return node.type === "rule";
 }
 
-function permitCssVariables(prop: string) {
+function isCssVariables(prop: string) {
   return prop.startsWith("--");
 }
 
@@ -32,39 +32,52 @@ const plugin: Plugin = () => {
     postcssRoot.walkRules(({ selector, nodes: _nodes }) => {
       const declsMap = new Map<string, Declaration[]>();
 
+      const addDeclsMap = (declNode: Declaration) => {
+        const parentDecls = declsMap.get(selector) || [];
+        parentDecls.push(declNode);
+        declsMap.set(selector, parentDecls);
+      };
+
       // Memo: ChildNode asserts Declaration or RuleNode.
       const nodes = _nodes as Declaration[] | RuleNode[];
+
+      const checkNode = (ruleNode: RuleNode) => {
+        const parentDecls = declsMap.get(selector);
+        if (!parentDecls) {
+          return;
+        }
+        const childeNodes = ruleNode.nodes as Declaration[] | RuleNode[];
+        for (const childNode of childeNodes) {
+          if (isDeclarationNode(childNode)) {
+            if (isCssVariables(childNode.prop)) {
+              continue;
+            }
+            if (parentDecls.find((d) => d.prop === childNode.prop)) {
+              report({
+                ruleName,
+                result: postcssResult,
+                message: messages.expected(childNode.prop, selector),
+                node: childNode,
+              });
+            }
+            addDeclsMap(childNode);
+          }
+          // check rule node recursively
+          if (isRuleNode(childNode)) {
+            checkNode(childNode);
+          }
+        }
+      };
 
       for (const node of nodes) {
         // Root Declarations
         if (isDeclarationNode(node)) {
-          const parentDecls = declsMap.get(selector) || [];
-          parentDecls.push(node);
-          declsMap.set(selector, parentDecls);
+          addDeclsMap(node);
         }
 
         // Nesting Rules
         if (isRuleNode(node)) {
-          const parentDecls = declsMap.get(selector);
-          if (!parentDecls) {
-            continue;
-          }
-          const childeNodes = node.nodes as Declaration[] | RuleNode[];
-          for (const childNode of childeNodes) {
-            if (isDeclarationNode(childNode)) {
-              if (permitCssVariables(childNode.prop)) {
-                continue;
-              }
-              if (parentDecls.find((d) => d.prop === childNode.prop)) {
-                report({
-                  ruleName,
-                  result: postcssResult,
-                  message: messages.expected(childNode.prop, selector),
-                  node: childNode,
-                });
-              }
-            }
-          }
+          checkNode(node);
         }
       }
     });

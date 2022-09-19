@@ -41,8 +41,7 @@ testRule({
     {
       code: `
       .sample {
-        --color: blue;
-        color: var(--color);
+        color: blue;
         &[data-type="failed"] {
           color: red;
         }
@@ -50,17 +49,16 @@ testRule({
       `,
       description: "use nesting and overwrite prop",
       message: messages.expected("color", ".sample"),
-      line: 6,
+      line: 5,
       column: 11,
-      endLine: 6,
+      endLine: 5,
       endColumn: 22,
     },
 
     {
       code: `
       .sample {
-        --color: blue;
-        color: var(--color);
+        color: blue;
         &[data-first-type="skip"] {
           &[data-second-type="failed"] {
             color: red;
@@ -70,10 +68,29 @@ testRule({
       `,
       description: "use nesting and overwrite prop",
       message: messages.expected("color", ".sample"),
-      line: 8,
-      column: 11,
-      endLine: 8,
-      endColumn: 22,
+      line: 6,
+      column: 13,
+      endLine: 6,
+      endColumn: 24,
+    },
+
+    {
+      code: `
+      .sample {
+        &[data-first-type="target"] {
+          color: blue;
+          &[data-second-type="failed"] {
+            color: red;
+          }
+        }
+      }
+      `,
+      description: "use nesting and overwrite prop",
+      message: messages.expected("color", '&[data-first-type="target"]'),
+      line: 6,
+      column: 13,
+      endLine: 6,
+      endColumn: 24,
     },
   ],
 });
