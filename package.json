@@ -1,5 +1,5 @@
 {
-  "name": "stylelint-custom-rules",
+  "name": "no-nesting-overwrite",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
